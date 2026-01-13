@@ -22,6 +22,7 @@ from typing import List, Optional
 import pickle
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # ---------------------------------------------------
@@ -29,6 +30,7 @@ from concurrent.futures import ThreadPoolExecutor
 # ---------------------------------------------------
 # The model is loaded ONCE when the server starts.
 # This avoids reloading heavy ML models per request.
+
 
 with open("model/recommender.pkl", "rb") as f:
     model = pickle.load(f)
@@ -42,6 +44,14 @@ app = FastAPI(
     title="Candidate Ranking AI Service",
     description="Ranks candidates using hybrid AI + rule-based scoring",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
