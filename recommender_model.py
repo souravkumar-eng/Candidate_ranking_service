@@ -23,8 +23,8 @@ class RecommenderModel:
     def __init__(
         self,
         model_name="sentence-transformers/all-MiniLM-L6-v2",
-        job_desc_weight=0.60,
-        job_title_weight=0.15,
+        job_desc_weight=0.70,
+        job_title_weight=0.05,
         skill_weight=0.15,
         experience_weight=0.10
     ):
@@ -81,6 +81,7 @@ class RecommenderModel:
         """
         Convert candidate structured data into a single text string.
 
+        
         This text is used for semantic embedding.
         """
 
@@ -220,8 +221,8 @@ class RecommenderModel:
                 self.job_desc_weight * desc_similarity +
                 self.job_title_weight * title_similarity +
                 self.skill_weight * skill_score +
-                self.experience_weight * experience_score
-            ) * project_penalty
+                self.experience_weight * experience_score)
+            # ) * project_penalty
 
             # Store final result
             results.append({
