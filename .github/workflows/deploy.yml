@@ -1,0 +1,30 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1
+
+        with:
+          host: 3.122.114.106
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          script: |
+            cd ~/Candidate_ranking_service
+            git pull origin main
+            docker stop candidate-ranking-api || true
+            docker rm candidate-ranking-api || true
+            docker build -t candidate-ranking-api .
+            docker run -d -p 8000:8000 --env-file .env --name candidate-ranking-api candidate-ranking-api
