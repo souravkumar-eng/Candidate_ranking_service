@@ -1,6 +1,18 @@
+# Virtual environments
+.venv/
 myenv/
+
+# Python cache
 __pycache__/
-.qodo/
 *.pyc
-*.pkl
+
+# Environment variables
 .env
+
+# IDE folders
+.qodo/
+.vscode/
+
+# Large generated files
+*.pkl
+
