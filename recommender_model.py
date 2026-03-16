@@ -1,55 +1,29 @@
-
-
 # ----------------------------
 # Imports
 # ----------------------------
 
-import re  # Used to extract required experience from job description text
-from sentence_transformers import SentenceTransformer  # Converts text → embeddings
-from sklearn.metrics.pairwise import cosine_similarity  # Measures similarity between embeddings
+import re
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+from filter_engine import FilterEngine
+from scoring_engine import ScoringEngine
+from boost_engine import BoostEngine
 
 
 class RecommenderModel:
     """
-    Main recommendation model class.
+    Candidate ranking model.
 
     Responsibilities:
     - Load embedding model once
-    - Convert job & candidate text to vectors
-    - Compute relevance scores
-    - Return ranked candidate list
+    - Apply strict filters
+    - Compute semantic + rule-based scores
+    - Apply boosts (optional)
+    - Return full ranked structure
     """
 
-    def __init__(
-        self,
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        job_desc_weight=0.70,
-        job_title_weight=0.05,
-        skill_weight=0.15,
-        experience_weight=0.10
-    ):
-        # """
-        # Initialize model and scoring weights.
-
-        # All weights must sum to 1.0 to keep scoring normalized.
-        # """
-
-        # Validate weight configuration
-        total = (
-            job_desc_weight +
-            job_title_weight +
-            skill_weight +
-            experience_weight
-        )
-        assert abs(total - 1.0) < 0.01, "Weights must sum to 1.0"
-
-        # Store weights
-        self.job_desc_weight = job_desc_weight
-        self.job_title_weight = job_title_weight
-        self.skill_weight = skill_weight
-        self.experience_weight = experience_weight
-
-        # Load sentence transformer model once (important for performance)
+    def __init__(self, model_name="sentence-transformers/all-MiniLM-L6-v2"):
         self.encoder = SentenceTransformer(model_name)
 
     # ----------------------------
@@ -57,84 +31,48 @@ class RecommenderModel:
     # ----------------------------
 
     def _embed(self, text: str):
-        """
-        Convert text into a normalized embedding vector.
-        Normalization ensures cosine similarity behaves correctly.
-        """
         return self.encoder.encode(text, normalize_embeddings=True)
 
     def _safe_list(self, value):
-        """
-        Ensure value is a list.
-        Returns empty list if value is missing or invalid.
-        """
         return value if isinstance(value, list) else []
 
     def _safe_int(self, value):
-        """
-        Ensure value is an integer.
-        Returns None if experience is missing.
-        """
         return value if isinstance(value, int) else None
 
     def _candidate_to_text(self, candidate: dict):
-        """
-        Convert candidate structured data into a single text string.
-
-        
-        This text is used for semantic embedding.
-        """
-
-        skills = self._safe_list(candidate.get("skills"))  # mandatory
+        skills = self._safe_list(candidate.get("skills"))
         projects = self._safe_list(candidate.get("projects"))
         experience = self._safe_int(candidate.get("experience_years"))
 
-        # Skills always included
-        parts = [f"Skills: {', '.join(skills)}"]
+        parts = []
 
-        # Projects add credibility
+        if skills:
+            parts.append(f"Skills: {', '.join(skills)}")
+
         if projects:
             parts.append(f"Projects: {', '.join(projects)}")
 
-        # Experience adds seniority signal
         if experience is not None:
             parts.append(f"Experience: {experience} years")
 
         return ". ".join(parts)
 
     # ----------------------------
-    # Rule-Based Scoring Functions
+    # Experience Scoring
     # ----------------------------
 
-    def _skill_score(self, job_desc: str, skills):
-        """
-        Skill relevance score:
-        Measures overlap between job description words and candidate skills.
-        """
-
-        job_words = set(job_desc.lower().split())
-        skill_words = set(s.lower() for s in skills)
-
-        # Percentage of skills mentioned in job description
-        return len(job_words & skill_words) / len(skill_words)
-
     def _experience_score(self, job_desc: str, exp):
-        """
-        Experience score:
-        - Missing experience → penalty
-        - If job specifies years, score is proportional
-        """
 
-        # Missing experience → penalize
         if exp is None:
             return 0.3
 
-        # Extract required years from job description
         match = re.search(r"(\d+)\s+years", job_desc.lower())
+
         if not match:
-            return 0.7  # Experience exists but requirement not specified
+            return 0.7
 
         required = int(match.group(1))
+
         if required == 0:
             return 0.7
 
@@ -144,95 +82,157 @@ class RecommenderModel:
     # Main Ranking Function
     # ----------------------------
 
-    def rank(self, job_title: str, job_description: str, candidates: list):
-        """
-        Rank candidates for a given job.
+    def rank(
+        self,
+        job_title,
+        job_description,
+        candidates,
+        filters=None,
+        scoring_weights=None
+    ):
 
-        Inputs:
-        - job_title: role intent
-        - job_description: detailed responsibilities
-        - candidates: list of candidate dictionaries
+        # ---------------------------------
+        # 1️Apply Strict Filters
+        # ---------------------------------
 
-        Output:
-        - List of candidates sorted by final_score (descending)
-        """
+        filtered_candidates = FilterEngine.apply_filters(
+            candidates,
+            filters or {}
+        )
 
-        # Embed job title and description once
-        job_title_emb = self._embed(job_title)
+        if not filtered_candidates:
+            return {
+                "total_candidates": len(candidates),
+                "filtered_candidates": 0,
+                "ranked_results": []
+            }
+
+        # ---------------------------------
+        # 2️Default Weights If Not Provided
+        # ---------------------------------
+
+        if not scoring_weights:
+            scoring_weights = {
+                "semantic": 0.30,
+                "skills": 0.30,
+                "experience": 0.20,
+                "projects": 0.20
+            }
+
+        ScoringEngine.validate_weights(scoring_weights)
+
+        # ---------------------------------
+        # 3️Embed Job Description Once
+        # ---------------------------------
+
         job_desc_emb = self._embed(job_description)
+
+        # ---------------------------------
+        # 4️Batch Embed Candidates
+        # ---------------------------------
+
+        candidate_texts = [
+            self._candidate_to_text(c)
+            for c in filtered_candidates
+        ]
+
+        candidate_embeddings = self.encoder.encode(
+            candidate_texts,
+            normalize_embeddings=True
+        )
 
         results = []
 
-        # Evaluate each candidate
-        for candidate in candidates:
+        # ---------------------------------
+        # 5️Score Each Candidate
+        # ---------------------------------
+
+        for idx, candidate in enumerate(filtered_candidates):
+
             candidate_id = candidate.get("id", "UNKNOWN")
-
-            # ----------------------------
-            # Mandatory Skills Check
-            # ----------------------------
-
-            skills = candidate.get("skills")
-            if not skills:
-                # Skip invalid candidates (industry-standard behavior)
-                continue
-
+            skills = self._safe_list(candidate.get("skills"))
             projects = self._safe_list(candidate.get("projects"))
 
-            # Build candidate semantic profile
-            candidate_text = self._candidate_to_text(candidate)
-            cand_emb = self._embed(candidate_text)
+            if not skills:
+                continue
 
-            # ----------------------------
-            # Semantic Similarity Scores
-            # ----------------------------
+            cand_emb = candidate_embeddings[idx]
 
-            # Role intent similarity
-            title_similarity = float(
-                cosine_similarity([job_title_emb], [cand_emb])[0][0]
-            )
-
-            # Responsibility/context similarity
+            # Semantic similarity
             desc_similarity = float(
                 cosine_similarity([job_desc_emb], [cand_emb])[0][0]
             )
 
-            # ----------------------------
-            # Rule-Based Scores
-            # ----------------------------
+            # Skill semantic match
+            skill_score = 0.0
 
-            skill_score = self._skill_score(job_description, skills)
+            if skills:
+                skill_embeddings = self.encoder.encode(
+                    skills,
+                    normalize_embeddings=True
+                )
+
+                matched = 0
+
+                for skill_emb in skill_embeddings:
+                    sim = cosine_similarity(
+                        [job_desc_emb],
+                        [skill_emb]
+                    )[0][0]
+
+                    if sim >= 0.65:
+                        matched += 1
+
+                skill_score = matched / len(skills)
 
             experience_score = self._experience_score(
-                job_description, candidate.get("experience_years")
+                job_description,
+                candidate.get("experience_years")
             )
 
-            # ----------------------------
-            # Missing Project Penalty
-            # ----------------------------
+            project_score = 1.0 if projects else 0.5
 
-            # Candidates without projects are slightly penalized
-            project_penalty = 0.85 if not projects else 1.0
+            # ---------------------------------
+            # 6️ Dynamic Weighted Score
+            # ---------------------------------
 
-            # ----------------------------
-            # Final Score Calculation
-            # ----------------------------
+            final_score = ScoringEngine.compute_score(
+                scoring_weights,
+                desc_similarity,
+                skill_score,
+                experience_score,
+                project_score
+            )
 
-            final_score = (
-                self.job_desc_weight * desc_similarity +
-                self.job_title_weight * title_similarity +
-                self.skill_weight * skill_score +
-                self.experience_weight * experience_score)
-            # ) * project_penalty
+            # ---------------------------------
+            # 7️Optional Boost (Safe)
+            # ---------------------------------
 
-            # Store final result
+            if filters:
+                final_score = BoostEngine.apply_boosts(
+                    candidate,
+                    filters,
+                    final_score
+                )
+
             results.append({
                 "candidate_id": candidate_id,
-                "job_desc_score": round(desc_similarity * 100, 2),
-                "job_title_score": round(title_similarity * 100, 2),
-                "skill_score": round(skill_score * 100, 2),
-                "experience_score": round(experience_score * 100, 2),
-                "final_score": round(float(final_score) * 100, 2)
+                "final_score": round(final_score * 100, 2),
+                "candidate_data": candidate
             })
 
-        # Return ranked candidates (best first)
-        return sorted(results, key=lambda x: x["final_score"], reverse=True)
+        # ---------------------------------
+        # 8️Sort Ranking
+        # ---------------------------------
+
+        ranked = sorted(
+            results,
+            key=lambda x: x["final_score"],
+            reverse=True
+        )
+
+        return {
+            "total_candidates": len(candidates),
+            "filtered_candidates": len(filtered_candidates),
+            "ranked_results": ranked
+        }

@@ -1,0 +1,1747 @@
+Version: 0.0.1 | Updated: 10-02-2026 | 11:28
+============================================================
+
+# Project Structure
+
+├── .gitignore
+├── .qodo
+│   ├── agents
+│   └── workflows
+├── Dockerfile
+├── PROJECT_EXPORT.txt
+├── README.md
+├── big_test_payload.json
+├── generate_big_data.py
+├── main.py
+├── model
+│   └── recommender.pkl
+├── recommender_model.py
+├── requirements.txt
+├── runtime.txt
+├── save_model.py
+├── test_api.py
+├── test_api_big_data.py
+└── test_model.py
+
+
+
+# Path: generate_big_data.py
+
+import json
+import random
+
+SKILLS_POOL = [
+    "Python", "SQL", "FastAPI", "Flask", "Django",
+    "Machine Learning", "Data Structures", "Algorithms",
+    "System Design", "REST APIs", "Docker", "Microservices"
+]
+
+PROJECTS_POOL = [
+    "Backend API",
+    "Microservice System",
+    "Recommendation Engine",
+    "ETL Pipeline",
+    "Analytics Dashboard",
+    "ML Pipeline",
+    "Authentication Service"
+]
+
+def generate_candidate(idx):
+    candidate = {
+        "id": f"C{idx}",
+        "skills": random.sample(SKILLS_POOL, random.randint(2, 5))
+    }
+
+    # 60% have experience
+    if random.random() < 0.6:
+        candidate["experience_years"] = random.randint(0, 8)
+
+    # 50% have projects
+    if random.random() < 0.5:
+        candidate["projects"] = random.sample(PROJECTS_POOL, random.randint(1, 3))
+
+    return candidate
+
+
+def generate_payload(n=5000):
+    return {
+        "job_title": "Software Engineer",
+        "job_description": (
+            "We are hiring a Software Engineer with strong Python, SQL, and API development "
+            "experience. The candidate should have experience building scalable backend systems, "
+            "REST APIs, and working with databases. Knowledge of system design and microservices is a plus."
+        ),
+        "candidates": [generate_candidate(i) for i in range(1, n + 1)]
+    }
+
+
+if __name__ == "__main__":
+    payload = generate_payload(50000)
+
+    with open("big_test_payload.json", "w") as f:
+        json.dump(payload, f, indent=2)
+
+    print("Generated big_test_payload.json with 1000000 candidates")
+
+
+
+# Path: save_model.py
+
+
+"""
+Save the recommender model to a .pkl file.
+"""
+
+import pickle
+from recommender_model import RecommenderModel
+
+# Create model instance
+model = RecommenderModel()
+
+# Save to disk
+with open("model/recommender.pkl", "wb") as f:
+    pickle.dump(model, f)
+
+print("Model saved to model/recommender.pkl")
+
+
+
+# Path: test_api.py
+
+import requests
+
+url = "http://127.0.0.1:8000/rank-candidates"
+
+payload = {
+  "job_title": "Python Machine Learning Engineer",
+  "job_description": "We are hiring a Python Machine Learning Engineer with at least 2 years of experience. Strong knowledge of Python, Machine Learning, SQL, and experience building ML models, scoring engines, APIs, or recommendation systems is required.",
+  "candidates": [
+    {"id":"C1","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["ML Scoring Engine","Recommendation System"]},
+    {"id":"C2","skills":["Python","Data Analysis","Pandas"],"experience_years":1,"projects":["Sales Dashboard"]},
+    {"id":"C3","skills":["Java","Spring Boot"],"experience_years":3,"projects":["Payment API"]},
+    {"id":"C4","skills":["Python","FastAPI","SQL"],"experience_years":2,"projects":["Backend API","Auth Service"]},
+    {"id":"C5","skills":["Python","Machine Learning"],"experience_years":4,"projects":["Fraud Detection","Risk Model"]},
+    {"id":"C6","skills":["SQL","Tableau"],"experience_years":3,"projects":["BI Dashboard"]},
+    {"id":"C7","skills":["Python"],"experience_years":1},
+    {"id":"C8","skills":["Python","ML","NLP"],"experience_years":2,"projects":["Resume Parser","Chatbot"]},
+    {"id":"C9","skills":["JavaScript","React"],"experience_years":2,"projects":["Frontend Dashboard"]},
+    {"id":"C10","skills":["Python","SQL","ML"],"experience_years":3,"projects":["Candidate Ranking Engine"]},
+
+    {"id":"C11","skills":["Python","FastAPI"],"experience_years":2,"projects":["Microservice API"]},
+    {"id":"C12","skills":["Python","Statistics"],"experience_years":1,"projects":["Hypothesis Testing"]},
+    {"id":"C13","skills":["Java","Hibernate"],"experience_years":4},
+    {"id":"C14","skills":["Python","Machine Learning","TensorFlow"],"experience_years":3,"projects":["Image Classifier"]},
+    {"id":"C15","skills":["SQL","Power BI"],"experience_years":2},
+    {"id":"C16","skills":["Python","Flask"],"experience_years":1,"projects":["REST API"]},
+    {"id":"C17","skills":["Python","ML","SQL"],"experience_years":2,"projects":["ML Pipeline","ETL System"]},
+    {"id":"C18","skills":["C++","DSA"],"experience_years":3},
+    {"id":"C19","skills":["Python","FastAPI","ML"],"experience_years":4,"projects":["Scoring Engine"]},
+    {"id":"C20","skills":["Python","Data Science"],"experience_years":2},
+
+    {"id":"C21","skills":["Python","ML"],"experience_years":5,"projects":["AI Hiring Tool"]},
+    {"id":"C22","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C23","skills":["Python","Machine Learning"],"experience_years":2,"projects":["Spam Classifier"]},
+    {"id":"C24","skills":["Python","FastAPI","Docker"],"experience_years":3},
+    {"id":"C25","skills":["Data Analysis","Excel"],"experience_years":2},
+    {"id":"C26","skills":["Python","ML","NLP"],"experience_years":1},
+    {"id":"C27","skills":["Python","SQL","ETL"],"experience_years":4,"projects":["Data Pipeline"]},
+    {"id":"C28","skills":["Java","Spring"],"experience_years":2},
+    {"id":"C29","skills":["Python","ML"],"experience_years":3,"projects":["Risk Prediction"]},
+    {"id":"C30","skills":["Python","Statistics","SQL"],"experience_years":2},
+
+    {"id":"C31","skills":["Python","Machine Learning"],"experience_years":2},
+    {"id":"C32","skills":["Python","Flask","SQL"],"experience_years":3},
+    {"id":"C33","skills":["Python"],"experience_years":1},
+    {"id":"C34","skills":["Python","ML","Deep Learning"],"experience_years":5,"projects":["Vision Model"]},
+    {"id":"C35","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C36","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C37","skills":["Python","ML"],"experience_years":3,"projects":["Recommendation Engine"]},
+    {"id":"C38","skills":["JavaScript","Node.js"],"experience_years":2},
+    {"id":"C39","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C40","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C41","skills":["Python","FastAPI"],"experience_years":2},
+    {"id":"C42","skills":["Python","Machine Learning"],"experience_years":3},
+    {"id":"C43","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C44","skills":["Python","ML","AI"],"experience_years":5,"projects":["AI Matching System"]},
+    {"id":"C45","skills":["SQL","Tableau"],"experience_years":3},
+    {"id":"C46","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C47","skills":["Python","ML"],"experience_years":1},
+    {"id":"C48","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["Scoring Engine"]},
+    {"id":"C49","skills":["Java"],"experience_years":4},
+    {"id":"C50","skills":["Python","ML","SQL"],"experience_years":3},
+
+    {"id":"C51","skills":["Python","ML"],"experience_years":2},
+    {"id":"C52","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C53","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C54","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C55","skills":["Python"],"experience_years":1},
+    {"id":"C56","skills":["Python","ML"],"experience_years":2},
+    {"id":"C57","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C58","skills":["SQL","Power BI"],"experience_years":2},
+    {"id":"C59","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C60","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C61","skills":["Python","ML"],"experience_years":2},
+    {"id":"C62","skills":["Python","FastAPI"],"experience_years":3},
+    {"id":"C63","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C64","skills":["Python","Machine Learning"],"experience_years":5},
+    {"id":"C65","skills":["Python"],"experience_years":1},
+    {"id":"C66","skills":["Python","ML"],"experience_years":3},
+    {"id":"C67","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C68","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C69","skills":["Python","Data Science"],"experience_years":1},
+    {"id":"C70","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C71","skills":["Python","ML"],"experience_years":2},
+    {"id":"C72","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C73","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C74","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C75","skills":["Python"],"experience_years":1},
+    {"id":"C76","skills":["Python","ML"],"experience_years":2},
+    {"id":"C77","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C78","skills":["SQL","Tableau"],"experience_years":2},
+    {"id":"C79","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C80","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C81","skills":["Python","ML"],"experience_years":2},
+    {"id":"C82","skills":["Python","FastAPI"],"experience_years":3},
+    {"id":"C83","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C84","skills":["Python","Machine Learning"],"experience_years":5},
+    {"id":"C85","skills":["Python"],"experience_years":1},
+    {"id":"C86","skills":["Python","ML"],"experience_years":3},
+    {"id":"C87","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C88","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C89","skills":["Python","Data Science"],"experience_years":1},
+    {"id":"C90","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C91","skills":["Python","ML"],"experience_years":2},
+    {"id":"C92","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C93","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C94","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C95","skills":["Python"],"experience_years":1},
+    {"id":"C96","skills":["Python","ML"],"experience_years":2},
+    {"id":"C97","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C98","skills":["SQL","Tableau"],"experience_years":2},
+    {"id":"C99","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C100","skills":["Python","ML","SQL"],"experience_years":4}
+  ]
+}
+
+
+response = requests.post(url, json=payload)
+print(response.json())
+
+
+
+# Path: requirements.txt
+
+fastapi
+uvicorn
+sentence-transformers
+scikit-learn
+numpy
+pandas
+torch
+
+
+# Path: main.py
+
+"""
+main.py
+
+FastAPI service that exposes the AI-based candidate ranking model.
+
+Responsibilities:
+- Load a pickled recommender model ONCE at startup
+- Accept job + candidate data from external software
+- Run ML inference asynchronously (non-blocking)
+- Return ranked candidates with scores
+
+This file is the ENTRY POINT of the service.
+"""
+
+# ---------------------------------------------------
+# Imports
+# ---------------------------------------------------
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Optional
+import pickle
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from fastapi.middleware.cors import CORSMiddleware
+
+
+# ---------------------------------------------------
+# Load model at startup (VERY IMPORTANT)
+# ---------------------------------------------------
+# The model is loaded ONCE when the server starts.
+# This avoids reloading heavy ML models per request.
+
+
+with open("model/recommender.pkl", "rb") as f:
+    model = pickle.load(f)
+
+
+# ---------------------------------------------------
+# FastAPI application instance
+# ---------------------------------------------------
+
+app = FastAPI(
+    title="Candidate Ranking AI Service",
+    description="Ranks candidates using hybrid AI + rule-based scoring",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+
+
+
+
+
+
+
+
+
+# ---------------------------------------------------
+# Thread pool for ML inference
+# ---------------------------------------------------
+# SentenceTransformer inference is CPU-bound.
+# Running it directly in async event loop would block the server.
+# ThreadPoolExecutor allows multiple requests to be processed safely.
+
+executor = ThreadPoolExecutor(max_workers=4)
+
+
+# ---------------------------------------------------
+# Request data schemas (Input validation)
+# ---------------------------------------------------
+
+class Candidate(BaseModel):
+    """
+    Candidate data structure.
+
+    Fields are optional to support incomplete data
+    from external systems.
+    """
+    id: str
+    skills: Optional[List[str]] = None
+    experience_years: Optional[int] = None
+    projects: Optional[List[str]] = None
+
+
+class RankRequest(BaseModel):
+    """
+    Request payload structure expected by the API.
+    """
+    job_title: str
+    job_description: str
+    candidates: List[Candidate]
+
+
+# ---------------------------------------------------
+# Async helper function to run ML safely
+# ---------------------------------------------------
+# This function runs the blocking ML model
+# inside a thread pool so FastAPI remains responsive.
+
+async def run_model_async(job_title: str, job_desc: str, candidates: list):
+    """
+    Runs the model ranking in a background thread.
+
+    This prevents blocking the FastAPI event loop.
+    """
+    loop = asyncio.get_event_loop()
+
+    return await loop.run_in_executor(
+        executor,          # Thread pool
+        model.rank,        # Model method
+        job_title,         # Arguments passed to model.rank()
+        job_desc,
+        candidates
+    )
+
+
+# ---------------------------------------------------
+# API Endpoint
+# ---------------------------------------------------
+
+@app.post("/rank-candidates")
+async def rank_candidates_api(payload: RankRequest):
+    """
+    POST /rank-candidates
+
+    This endpoint:
+    - Receives job and candidate data from other software
+    - Runs the recommender model
+    - Returns ranked candidates with scores
+    """
+
+    # Convert Pydantic objects to plain dictionaries
+    candidates_data = [c.dict() for c in payload.candidates]
+
+    # Run the model asynchronously
+    ranked_results = await run_model_async(
+        payload.job_title,
+        payload.job_description,
+        candidates_data
+    )
+
+    # Return response to calling software
+    return {
+    "job_title": payload.job_title,
+    "count": len(ranked_results),
+    "results": ranked_results
+}
+
+
+
+
+
+# {
+#   "job_title": "Python Machine Learning Engineer",
+#   "job_description": "We are hiring a Python Machine Learning Engineer with at least 2 years of experience. Strong knowledge of Python, Machine Learning, SQL, and experience building ML models, scoring engines, APIs, or recommendation systems is required.",
+#   "candidates": [
+#     {"id":"C1","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["ML Scoring Engine","Recommendation System"]},
+#     {"id":"C2","skills":["Python","Data Analysis","Pandas"],"experience_years":1,"projects":["Sales Dashboard"]},
+#     {"id":"C3","skills":["Java","Spring Boot"],"experience_years":3,"projects":["Payment API"]},
+#     {"id":"C4","skills":["Python","FastAPI","SQL"],"experience_years":2,"projects":["Backend API","Auth Service"]},
+#     {"id":"C5","skills":["Python","Machine Learning"],"experience_years":4,"projects":["Fraud Detection","Risk Model"]},
+#     {"id":"C6","skills":["SQL","Tableau"],"experience_years":3,"projects":["BI Dashboard"]},
+#     {"id":"C7","skills":["Python"],"experience_years":1},
+#     {"id":"C8","skills":["Python","ML","NLP"],"experience_years":2,"projects":["Resume Parser","Chatbot"]},
+#     {"id":"C9","skills":["JavaScript","React"],"experience_years":2,"projects":["Frontend Dashboard"]},
+#     {"id":"C10","skills":["Python","SQL","ML"],"experience_years":3,"projects":["Candidate Ranking Engine"]},
+
+#     {"id":"C11","skills":["Python","FastAPI"],"experience_years":2,"projects":["Microservice API"]},
+#     {"id":"C12","skills":["Python","Statistics"],"experience_years":1,"projects":["Hypothesis Testing"]},
+#     {"id":"C13","skills":["Java","Hibernate"],"experience_years":4},
+#     {"id":"C14","skills":["Python","Machine Learning","TensorFlow"],"experience_years":3,"projects":["Image Classifier"]},
+#     {"id":"C15","skills":["SQL","Power BI"],"experience_years":2},
+#     {"id":"C16","skills":["Python","Flask"],"experience_years":1,"projects":["REST API"]},
+#     {"id":"C17","skills":["Python","ML","SQL"],"experience_years":2,"projects":["ML Pipeline","ETL System"]},
+#     {"id":"C18","skills":["C++","DSA"],"experience_years":3},
+#     {"id":"C19","skills":["Python","FastAPI","ML"],"experience_years":4,"projects":["Scoring Engine"]},
+#     {"id":"C20","skills":["Python","Data Science"],"experience_years":2},
+
+#     {"id":"C21","skills":["Python","ML"],"experience_years":5,"projects":["AI Hiring Tool"]},
+#     {"id":"C22","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C23","skills":["Python","Machine Learning"],"experience_years":2,"projects":["Spam Classifier"]},
+#     {"id":"C24","skills":["Python","FastAPI","Docker"],"experience_years":3},
+#     {"id":"C25","skills":["Data Analysis","Excel"],"experience_years":2},
+#     {"id":"C26","skills":["Python","ML","NLP"],"experience_years":1},
+#     {"id":"C27","skills":["Python","SQL","ETL"],"experience_years":4,"projects":["Data Pipeline"]},
+#     {"id":"C28","skills":["Java","Spring"],"experience_years":2},
+#     {"id":"C29","skills":["Python","ML"],"experience_years":3,"projects":["Risk Prediction"]},
+#     {"id":"C30","skills":["Python","Statistics","SQL"],"experience_years":2},
+
+#     {"id":"C31","skills":["Python","Machine Learning"],"experience_years":2},
+#     {"id":"C32","skills":["Python","Flask","SQL"],"experience_years":3},
+#     {"id":"C33","skills":["Python"],"experience_years":1},
+#     {"id":"C34","skills":["Python","ML","Deep Learning"],"experience_years":5,"projects":["Vision Model"]},
+#     {"id":"C35","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C36","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C37","skills":["Python","ML"],"experience_years":3,"projects":["Recommendation Engine"]},
+#     {"id":"C38","skills":["JavaScript","Node.js"],"experience_years":2},
+#     {"id":"C39","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C40","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C41","skills":["Python","FastAPI"],"experience_years":2},
+#     {"id":"C42","skills":["Python","Machine Learning"],"experience_years":3},
+#     {"id":"C43","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C44","skills":["Python","ML","AI"],"experience_years":5,"projects":["AI Matching System"]},
+#     {"id":"C45","skills":["SQL","Tableau"],"experience_years":3},
+#     {"id":"C46","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C47","skills":["Python","ML"],"experience_years":1},
+#     {"id":"C48","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["Scoring Engine"]},
+#     {"id":"C49","skills":["Java"],"experience_years":4},
+#     {"id":"C50","skills":["Python","ML","SQL"],"experience_years":3},
+
+#     {"id":"C51","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C52","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C53","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C54","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C55","skills":["Python"],"experience_years":1},
+#     {"id":"C56","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C57","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C58","skills":["SQL","Power BI"],"experience_years":2},
+#     {"id":"C59","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C60","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C61","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C62","skills":["Python","FastAPI"],"experience_years":3},
+#     {"id":"C63","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C64","skills":["Python","Machine Learning"],"experience_years":5},
+#     {"id":"C65","skills":["Python"],"experience_years":1},
+#     {"id":"C66","skills":["Python","ML"],"experience_years":3},
+#     {"id":"C67","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C68","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C69","skills":["Python","Data Science"],"experience_years":1},
+#     {"id":"C70","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C71","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C72","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C73","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C74","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C75","skills":["Python"],"experience_years":1},
+#     {"id":"C76","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C77","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C78","skills":["SQL","Tableau"],"experience_years":2},
+#     {"id":"C79","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C80","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C81","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C82","skills":["Python","FastAPI"],"experience_years":3},
+#     {"id":"C83","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C84","skills":["Python","Machine Learning"],"experience_years":5},
+#     {"id":"C85","skills":["Python"],"experience_years":1},
+#     {"id":"C86","skills":["Python","ML"],"experience_years":3},
+#     {"id":"C87","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C88","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C89","skills":["Python","Data Science"],"experience_years":1},
+#     {"id":"C90","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C91","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C92","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C93","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C94","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C95","skills":["Python"],"experience_years":1},
+#     {"id":"C96","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C97","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C98","skills":["SQL","Tableau"],"experience_years":2},
+#     {"id":"C99","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C100","skills":["Python","ML","SQL"],"experience_years":4}
+#   ]
+# }
+
+
+# Path: PROJECT_EXPORT.txt
+
+Version: 0.0.1 | Updated: 10-02-2026 | 11:28
+============================================================
+
+# Project Structure
+
+├── .gitignore
+├── .qodo
+│   ├── agents
+│   └── workflows
+├── Dockerfile
+├── PROJECT_EXPORT.txt
+├── README.md
+├── big_test_payload.json
+├── generate_big_data.py
+├── main.py
+├── model
+│   └── recommender.pkl
+├── recommender_model.py
+├── requirements.txt
+├── runtime.txt
+├── save_model.py
+├── test_api.py
+├── test_api_big_data.py
+└── test_model.py
+
+
+
+# Path: generate_big_data.py
+
+import json
+import random
+
+SKILLS_POOL = [
+    "Python", "SQL", "FastAPI", "Flask", "Django",
+    "Machine Learning", "Data Structures", "Algorithms",
+    "System Design", "REST APIs", "Docker", "Microservices"
+]
+
+PROJECTS_POOL = [
+    "Backend API",
+    "Microservice System",
+    "Recommendation Engine",
+    "ETL Pipeline",
+    "Analytics Dashboard",
+    "ML Pipeline",
+    "Authentication Service"
+]
+
+def generate_candidate(idx):
+    candidate = {
+        "id": f"C{idx}",
+        "skills": random.sample(SKILLS_POOL, random.randint(2, 5))
+    }
+
+    # 60% have experience
+    if random.random() < 0.6:
+        candidate["experience_years"] = random.randint(0, 8)
+
+    # 50% have projects
+    if random.random() < 0.5:
+        candidate["projects"] = random.sample(PROJECTS_POOL, random.randint(1, 3))
+
+    return candidate
+
+
+def generate_payload(n=5000):
+    return {
+        "job_title": "Software Engineer",
+        "job_description": (
+            "We are hiring a Software Engineer with strong Python, SQL, and API development "
+            "experience. The candidate should have experience building scalable backend systems, "
+            "REST APIs, and working with databases. Knowledge of system design and microservices is a plus."
+        ),
+        "candidates": [generate_candidate(i) for i in range(1, n + 1)]
+    }
+
+
+if __name__ == "__main__":
+    payload = generate_payload(50000)
+
+    with open("big_test_payload.json", "w") as f:
+        json.dump(payload, f, indent=2)
+
+    print("Generated big_test_payload.json with 1000000 candidates")
+
+
+
+# Path: save_model.py
+
+
+"""
+Save the recommender model to a .pkl file.
+"""
+
+import pickle
+from recommender_model import RecommenderModel
+
+# Create model instance
+model = RecommenderModel()
+
+# Save to disk
+with open("model/recommender.pkl", "wb") as f:
+    pickle.dump(model, f)
+
+print("Model saved to model/recommender.pkl")
+
+
+
+# Path: test_api.py
+
+import requests
+
+url = "http://127.0.0.1:8000/rank-candidates"
+
+payload = {
+  "job_title": "Python Machine Learning Engineer",
+  "job_description": "We are hiring a Python Machine Learning Engineer with at least 2 years of experience. Strong knowledge of Python, Machine Learning, SQL, and experience building ML models, scoring engines, APIs, or recommendation systems is required.",
+  "candidates": [
+    {"id":"C1","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["ML Scoring Engine","Recommendation System"]},
+    {"id":"C2","skills":["Python","Data Analysis","Pandas"],"experience_years":1,"projects":["Sales Dashboard"]},
+    {"id":"C3","skills":["Java","Spring Boot"],"experience_years":3,"projects":["Payment API"]},
+    {"id":"C4","skills":["Python","FastAPI","SQL"],"experience_years":2,"projects":["Backend API","Auth Service"]},
+    {"id":"C5","skills":["Python","Machine Learning"],"experience_years":4,"projects":["Fraud Detection","Risk Model"]},
+    {"id":"C6","skills":["SQL","Tableau"],"experience_years":3,"projects":["BI Dashboard"]},
+    {"id":"C7","skills":["Python"],"experience_years":1},
+    {"id":"C8","skills":["Python","ML","NLP"],"experience_years":2,"projects":["Resume Parser","Chatbot"]},
+    {"id":"C9","skills":["JavaScript","React"],"experience_years":2,"projects":["Frontend Dashboard"]},
+    {"id":"C10","skills":["Python","SQL","ML"],"experience_years":3,"projects":["Candidate Ranking Engine"]},
+
+    {"id":"C11","skills":["Python","FastAPI"],"experience_years":2,"projects":["Microservice API"]},
+    {"id":"C12","skills":["Python","Statistics"],"experience_years":1,"projects":["Hypothesis Testing"]},
+    {"id":"C13","skills":["Java","Hibernate"],"experience_years":4},
+    {"id":"C14","skills":["Python","Machine Learning","TensorFlow"],"experience_years":3,"projects":["Image Classifier"]},
+    {"id":"C15","skills":["SQL","Power BI"],"experience_years":2},
+    {"id":"C16","skills":["Python","Flask"],"experience_years":1,"projects":["REST API"]},
+    {"id":"C17","skills":["Python","ML","SQL"],"experience_years":2,"projects":["ML Pipeline","ETL System"]},
+    {"id":"C18","skills":["C++","DSA"],"experience_years":3},
+    {"id":"C19","skills":["Python","FastAPI","ML"],"experience_years":4,"projects":["Scoring Engine"]},
+    {"id":"C20","skills":["Python","Data Science"],"experience_years":2},
+
+    {"id":"C21","skills":["Python","ML"],"experience_years":5,"projects":["AI Hiring Tool"]},
+    {"id":"C22","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C23","skills":["Python","Machine Learning"],"experience_years":2,"projects":["Spam Classifier"]},
+    {"id":"C24","skills":["Python","FastAPI","Docker"],"experience_years":3},
+    {"id":"C25","skills":["Data Analysis","Excel"],"experience_years":2},
+    {"id":"C26","skills":["Python","ML","NLP"],"experience_years":1},
+    {"id":"C27","skills":["Python","SQL","ETL"],"experience_years":4,"projects":["Data Pipeline"]},
+    {"id":"C28","skills":["Java","Spring"],"experience_years":2},
+    {"id":"C29","skills":["Python","ML"],"experience_years":3,"projects":["Risk Prediction"]},
+    {"id":"C30","skills":["Python","Statistics","SQL"],"experience_years":2},
+
+    {"id":"C31","skills":["Python","Machine Learning"],"experience_years":2},
+    {"id":"C32","skills":["Python","Flask","SQL"],"experience_years":3},
+    {"id":"C33","skills":["Python"],"experience_years":1},
+    {"id":"C34","skills":["Python","ML","Deep Learning"],"experience_years":5,"projects":["Vision Model"]},
+    {"id":"C35","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C36","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C37","skills":["Python","ML"],"experience_years":3,"projects":["Recommendation Engine"]},
+    {"id":"C38","skills":["JavaScript","Node.js"],"experience_years":2},
+    {"id":"C39","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C40","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C41","skills":["Python","FastAPI"],"experience_years":2},
+    {"id":"C42","skills":["Python","Machine Learning"],"experience_years":3},
+    {"id":"C43","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C44","skills":["Python","ML","AI"],"experience_years":5,"projects":["AI Matching System"]},
+    {"id":"C45","skills":["SQL","Tableau"],"experience_years":3},
+    {"id":"C46","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C47","skills":["Python","ML"],"experience_years":1},
+    {"id":"C48","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["Scoring Engine"]},
+    {"id":"C49","skills":["Java"],"experience_years":4},
+    {"id":"C50","skills":["Python","ML","SQL"],"experience_years":3},
+
+    {"id":"C51","skills":["Python","ML"],"experience_years":2},
+    {"id":"C52","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C53","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C54","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C55","skills":["Python"],"experience_years":1},
+    {"id":"C56","skills":["Python","ML"],"experience_years":2},
+    {"id":"C57","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C58","skills":["SQL","Power BI"],"experience_years":2},
+    {"id":"C59","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C60","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C61","skills":["Python","ML"],"experience_years":2},
+    {"id":"C62","skills":["Python","FastAPI"],"experience_years":3},
+    {"id":"C63","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C64","skills":["Python","Machine Learning"],"experience_years":5},
+    {"id":"C65","skills":["Python"],"experience_years":1},
+    {"id":"C66","skills":["Python","ML"],"experience_years":3},
+    {"id":"C67","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C68","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C69","skills":["Python","Data Science"],"experience_years":1},
+    {"id":"C70","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C71","skills":["Python","ML"],"experience_years":2},
+    {"id":"C72","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C73","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C74","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C75","skills":["Python"],"experience_years":1},
+    {"id":"C76","skills":["Python","ML"],"experience_years":2},
+    {"id":"C77","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C78","skills":["SQL","Tableau"],"experience_years":2},
+    {"id":"C79","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C80","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C81","skills":["Python","ML"],"experience_years":2},
+    {"id":"C82","skills":["Python","FastAPI"],"experience_years":3},
+    {"id":"C83","skills":["Python","SQL"],"experience_years":1},
+    {"id":"C84","skills":["Python","Machine Learning"],"experience_years":5},
+    {"id":"C85","skills":["Python"],"experience_years":1},
+    {"id":"C86","skills":["Python","ML"],"experience_years":3},
+    {"id":"C87","skills":["Python","FastAPI","ML"],"experience_years":2},
+    {"id":"C88","skills":["SQL","Reporting"],"experience_years":2},
+    {"id":"C89","skills":["Python","Data Science"],"experience_years":1},
+    {"id":"C90","skills":["Python","ML","SQL"],"experience_years":4},
+
+    {"id":"C91","skills":["Python","ML"],"experience_years":2},
+    {"id":"C92","skills":["Python","FastAPI"],"experience_years":1},
+    {"id":"C93","skills":["Python","SQL"],"experience_years":3},
+    {"id":"C94","skills":["Python","Machine Learning"],"experience_years":4},
+    {"id":"C95","skills":["Python"],"experience_years":1},
+    {"id":"C96","skills":["Python","ML"],"experience_years":2},
+    {"id":"C97","skills":["Python","FastAPI","SQL"],"experience_years":3},
+    {"id":"C98","skills":["SQL","Tableau"],"experience_years":2},
+    {"id":"C99","skills":["Python","Data Analysis"],"experience_years":1},
+    {"id":"C100","skills":["Python","ML","SQL"],"experience_years":4}
+  ]
+}
+
+
+response = requests.post(url, json=payload)
+print(response.json())
+
+
+
+# Path: requirements.txt
+
+fastapi
+uvicorn
+sentence-transformers
+scikit-learn
+numpy
+pandas
+torch
+
+
+# Path: main.py
+
+"""
+main.py
+
+FastAPI service that exposes the AI-based candidate ranking model.
+
+Responsibilities:
+- Load a pickled recommender model ONCE at startup
+- Accept job + candidate data from external software
+- Run ML inference asynchronously (non-blocking)
+- Return ranked candidates with scores
+
+This file is the ENTRY POINT of the service.
+"""
+
+# ---------------------------------------------------
+# Imports
+# ---------------------------------------------------
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Optional
+import pickle
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from fastapi.middleware.cors import CORSMiddleware
+
+
+# ---------------------------------------------------
+# Load model at startup (VERY IMPORTANT)
+# ---------------------------------------------------
+# The model is loaded ONCE when the server starts.
+# This avoids reloading heavy ML models per request.
+
+
+with open("model/recommender.pkl", "rb") as f:
+    model = pickle.load(f)
+
+
+# ---------------------------------------------------
+# FastAPI application instance
+# ---------------------------------------------------
+
+app = FastAPI(
+    title="Candidate Ranking AI Service",
+    description="Ranks candidates using hybrid AI + rule-based scoring",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+
+
+
+
+
+
+
+
+
+# ---------------------------------------------------
+# Thread pool for ML inference
+# ---------------------------------------------------
+# SentenceTransformer inference is CPU-bound.
+# Running it directly in async event loop would block the server.
+# ThreadPoolExecutor allows multiple requests to be processed safely.
+
+executor = ThreadPoolExecutor(max_workers=4)
+
+
+# ---------------------------------------------------
+# Request data schemas (Input validation)
+# ---------------------------------------------------
+
+class Candidate(BaseModel):
+    """
+    Candidate data structure.
+
+    Fields are optional to support incomplete data
+    from external systems.
+    """
+    id: str
+    skills: Optional[List[str]] = None
+    experience_years: Optional[int] = None
+    projects: Optional[List[str]] = None
+
+
+class RankRequest(BaseModel):
+    """
+    Request payload structure expected by the API.
+    """
+    job_title: str
+    job_description: str
+    candidates: List[Candidate]
+
+
+# ---------------------------------------------------
+# Async helper function to run ML safely
+# ---------------------------------------------------
+# This function runs the blocking ML model
+# inside a thread pool so FastAPI remains responsive.
+
+async def run_model_async(job_title: str, job_desc: str, candidates: list):
+    """
+    Runs the model ranking in a background thread.
+
+    This prevents blocking the FastAPI event loop.
+    """
+    loop = asyncio.get_event_loop()
+
+    return await loop.run_in_executor(
+        executor,          # Thread pool
+        model.rank,        # Model method
+        job_title,         # Arguments passed to model.rank()
+        job_desc,
+        candidates
+    )
+
+
+# ---------------------------------------------------
+# API Endpoint
+# ---------------------------------------------------
+
+@app.post("/rank-candidates")
+async def rank_candidates_api(payload: RankRequest):
+    """
+    POST /rank-candidates
+
+    This endpoint:
+    - Receives job and candidate data from other software
+    - Runs the recommender model
+    - Returns ranked candidates with scores
+    """
+
+    # Convert Pydantic objects to plain dictionaries
+    candidates_data = [c.dict() for c in payload.candidates]
+
+    # Run the model asynchronously
+    ranked_results = await run_model_async(
+        payload.job_title,
+        payload.job_description,
+        candidates_data
+    )
+
+    # Return response to calling software
+    return {
+    "job_title": payload.job_title,
+    "count": len(ranked_results),
+    "results": ranked_results
+}
+
+
+
+
+
+# {
+#   "job_title": "Python Machine Learning Engineer",
+#   "job_description": "We are hiring a Python Machine Learning Engineer with at least 2 years of experience. Strong knowledge of Python, Machine Learning, SQL, and experience building ML models, scoring engines, APIs, or recommendation systems is required.",
+#   "candidates": [
+#     {"id":"C1","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["ML Scoring Engine","Recommendation System"]},
+#     {"id":"C2","skills":["Python","Data Analysis","Pandas"],"experience_years":1,"projects":["Sales Dashboard"]},
+#     {"id":"C3","skills":["Java","Spring Boot"],"experience_years":3,"projects":["Payment API"]},
+#     {"id":"C4","skills":["Python","FastAPI","SQL"],"experience_years":2,"projects":["Backend API","Auth Service"]},
+#     {"id":"C5","skills":["Python","Machine Learning"],"experience_years":4,"projects":["Fraud Detection","Risk Model"]},
+#     {"id":"C6","skills":["SQL","Tableau"],"experience_years":3,"projects":["BI Dashboard"]},
+#     {"id":"C7","skills":["Python"],"experience_years":1},
+#     {"id":"C8","skills":["Python","ML","NLP"],"experience_years":2,"projects":["Resume Parser","Chatbot"]},
+#     {"id":"C9","skills":["JavaScript","React"],"experience_years":2,"projects":["Frontend Dashboard"]},
+#     {"id":"C10","skills":["Python","SQL","ML"],"experience_years":3,"projects":["Candidate Ranking Engine"]},
+
+#     {"id":"C11","skills":["Python","FastAPI"],"experience_years":2,"projects":["Microservice API"]},
+#     {"id":"C12","skills":["Python","Statistics"],"experience_years":1,"projects":["Hypothesis Testing"]},
+#     {"id":"C13","skills":["Java","Hibernate"],"experience_years":4},
+#     {"id":"C14","skills":["Python","Machine Learning","TensorFlow"],"experience_years":3,"projects":["Image Classifier"]},
+#     {"id":"C15","skills":["SQL","Power BI"],"experience_years":2},
+#     {"id":"C16","skills":["Python","Flask"],"experience_years":1,"projects":["REST API"]},
+#     {"id":"C17","skills":["Python","ML","SQL"],"experience_years":2,"projects":["ML Pipeline","ETL System"]},
+#     {"id":"C18","skills":["C++","DSA"],"experience_years":3},
+#     {"id":"C19","skills":["Python","FastAPI","ML"],"experience_years":4,"projects":["Scoring Engine"]},
+#     {"id":"C20","skills":["Python","Data Science"],"experience_years":2},
+
+#     {"id":"C21","skills":["Python","ML"],"experience_years":5,"projects":["AI Hiring Tool"]},
+#     {"id":"C22","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C23","skills":["Python","Machine Learning"],"experience_years":2,"projects":["Spam Classifier"]},
+#     {"id":"C24","skills":["Python","FastAPI","Docker"],"experience_years":3},
+#     {"id":"C25","skills":["Data Analysis","Excel"],"experience_years":2},
+#     {"id":"C26","skills":["Python","ML","NLP"],"experience_years":1},
+#     {"id":"C27","skills":["Python","SQL","ETL"],"experience_years":4,"projects":["Data Pipeline"]},
+#     {"id":"C28","skills":["Java","Spring"],"experience_years":2},
+#     {"id":"C29","skills":["Python","ML"],"experience_years":3,"projects":["Risk Prediction"]},
+#     {"id":"C30","skills":["Python","Statistics","SQL"],"experience_years":2},
+
+#     {"id":"C31","skills":["Python","Machine Learning"],"experience_years":2},
+#     {"id":"C32","skills":["Python","Flask","SQL"],"experience_years":3},
+#     {"id":"C33","skills":["Python"],"experience_years":1},
+#     {"id":"C34","skills":["Python","ML","Deep Learning"],"experience_years":5,"projects":["Vision Model"]},
+#     {"id":"C35","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C36","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C37","skills":["Python","ML"],"experience_years":3,"projects":["Recommendation Engine"]},
+#     {"id":"C38","skills":["JavaScript","Node.js"],"experience_years":2},
+#     {"id":"C39","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C40","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C41","skills":["Python","FastAPI"],"experience_years":2},
+#     {"id":"C42","skills":["Python","Machine Learning"],"experience_years":3},
+#     {"id":"C43","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C44","skills":["Python","ML","AI"],"experience_years":5,"projects":["AI Matching System"]},
+#     {"id":"C45","skills":["SQL","Tableau"],"experience_years":3},
+#     {"id":"C46","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C47","skills":["Python","ML"],"experience_years":1},
+#     {"id":"C48","skills":["Python","Machine Learning","SQL"],"experience_years":2,"projects":["Scoring Engine"]},
+#     {"id":"C49","skills":["Java"],"experience_years":4},
+#     {"id":"C50","skills":["Python","ML","SQL"],"experience_years":3},
+
+#     {"id":"C51","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C52","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C53","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C54","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C55","skills":["Python"],"experience_years":1},
+#     {"id":"C56","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C57","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C58","skills":["SQL","Power BI"],"experience_years":2},
+#     {"id":"C59","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C60","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C61","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C62","skills":["Python","FastAPI"],"experience_years":3},
+#     {"id":"C63","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C64","skills":["Python","Machine Learning"],"experience_years":5},
+#     {"id":"C65","skills":["Python"],"experience_years":1},
+#     {"id":"C66","skills":["Python","ML"],"experience_years":3},
+#     {"id":"C67","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C68","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C69","skills":["Python","Data Science"],"experience_years":1},
+#     {"id":"C70","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C71","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C72","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C73","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C74","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C75","skills":["Python"],"experience_years":1},
+#     {"id":"C76","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C77","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C78","skills":["SQL","Tableau"],"experience_years":2},
+#     {"id":"C79","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C80","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C81","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C82","skills":["Python","FastAPI"],"experience_years":3},
+#     {"id":"C83","skills":["Python","SQL"],"experience_years":1},
+#     {"id":"C84","skills":["Python","Machine Learning"],"experience_years":5},
+#     {"id":"C85","skills":["Python"],"experience_years":1},
+#     {"id":"C86","skills":["Python","ML"],"experience_years":3},
+#     {"id":"C87","skills":["Python","FastAPI","ML"],"experience_years":2},
+#     {"id":"C88","skills":["SQL","Reporting"],"experience_years":2},
+#     {"id":"C89","skills":["Python","Data Science"],"experience_years":1},
+#     {"id":"C90","skills":["Python","ML","SQL"],"experience_years":4},
+
+#     {"id":"C91","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C92","skills":["Python","FastAPI"],"experience_years":1},
+#     {"id":"C93","skills":["Python","SQL"],"experience_years":3},
+#     {"id":"C94","skills":["Python","Machine Learning"],"experience_years":4},
+#     {"id":"C95","skills":["Python"],"experience_years":1},
+#     {"id":"C96","skills":["Python","ML"],"experience_years":2},
+#     {"id":"C97","skills":["Python","FastAPI","SQL"],"experience_years":3},
+#     {"id":"C98","skills":["SQL","Tableau"],"experience_years":2},
+#     {"id":"C99","skills":["Python","Data Analysis"],"experience_years":1},
+#     {"id":"C100","skills":["Python","ML","SQL"],"experience_years":4}
+#   ]
+# }
+
+
+# Path: runtime.txt
+
+python-3.12.3
+
+
+# Path: test_api_big_data.py
+
+import json
+import requests
+import time
+
+URL = "http://127.0.0.1:8000/rank-candidates"
+
+with open("big_test_payload.json") as f:
+    payload = json.load(f)
+
+start = time.time()
+response = requests.post(URL, json=payload)
+end = time.time()
+
+print("Status:", response.status_code)
+print("Time taken:", round(end - start, 2), "seconds")
+
+data = response.json()
+
+print("Job title:", data.get("job_title"))
+print("Total candidates processed:", data.get("count"))
+
+print("\nTop 5 results:")
+for r in data["results"][:5]:
+    print(r)
+
+
+
+# Path: README.md
+
+# Candidate Ranking AI Service
+
+A production-ready **AI-powered candidate ranking microservice** built using **FastAPI** and **Sentence Transformers**.  
+The service ranks 50–100 candidates against a job role using a **hybrid intelligence approach** (AI + rule-based logic).
+
+This system is designed to integrate seamlessly with **ATS platforms, HR software, and internal hiring tools**.
+
+---
+
+## ARCHITECTURE>>
+
+┌──────────────────────────────┐
+│        External Software      │
+│  (ATS / HR / Hiring Platform) │
+└───────────────┬──────────────┘
+                │
+                │ POST /rank-candidates
+                │ (job + candidates JSON)
+                ▼
+┌──────────────────────────────┐
+│        FastAPI Service        │
+│   (Async REST Microservice)  │
+│                              │
+│  - Input validation (Pydantic)
+│  - Async request handling     │
+└───────────────┬──────────────┘
+                │
+                │ ThreadPoolExecutor
+                │ (CPU-bound inference)
+                ▼
+┌──────────────────────────────┐
+│   RecommenderModel (Pickled)  │
+│                              │
+│  - Semantic similarity (AI)   │
+│  - Skill rule scoring         │
+│  - Experience rule scoring    │
+│  - Project penalty logic      │
+└───────────────┬──────────────┘
+                │
+                ▼
+┌──────────────────────────────┐
+│     Ranked Candidates JSON   │
+│  (sorted by final_score)     │
+└──────────────────────────────┘
+
+
+## 🧠 Key Features
+
+- ✅ Hybrid scoring (AI semantic similarity + business rules)
+- ✅ Handles incomplete / noisy candidate data gracefully
+- ✅ FastAPI-based async microservice
+- ✅ Pickled ML model loaded once at startup
+- ✅ Scales to 100+ candidates per request
+- ✅ Ready for cloud deployment (Render)
+
+---
+
+## 🏗️ Architecture Overview
+
+External Software (ATS / HR Tool)
+|
+| POST /rank-candidates (JSON)
+|
+FastAPI Service
+|
+| Async Execution
+|
+RecommenderModel (Pickled)
+|
+| AI + Rules
+|
+Ranked Candidate Scores (JSON)
+
+yaml
+Copy code
+
+---
+
+## 🧮 Scoring Strategy (Hybrid Intelligence)
+
+Final candidate score is computed using:
+
+Final Score =
+(job_description_similarity * 0.60)
+
+(job_title_similarity * 0.15)
+
+(skill_match_score * 0.15)
+
+(experience_match_score * 0.10)
+
+yaml
+Copy code
+
+### Why Hybrid?
+- **AI** understands meaning and context
+- **Rules** enforce business constraints
+- This mirrors how **real ATS systems work**
+
+---
+
+## 📁 Project Structure
+
+candidate_ranking_service/
+│
+├── main.py # FastAPI application (API layer)
+├── recommender_model.py # Core AI + rule-based model
+├── save_model.py # Script to generate .pkl model
+├── test_model.py # Model testing script
+├── requirements.txt # Python dependencies
+│
+├── model/
+│ └── recommender.pkl # Serialized trained model
+│
+└── README.md
+
+yaml
+Copy code
+
+---
+
+## ⚙️ Tech Stack
+
+- **Python 3.10+**
+- **FastAPI**
+- **Sentence Transformers**
+- **Scikit-learn**
+- **PyTorch**
+- **Uvicorn**
+
+---
+
+## 🚀 Getting Started (Local Setup)
+
+### 1️⃣ Clone Repository
+
+```bash
+git clone <your-repo-url>
+cd candidate_ranking_service
+2️⃣ Create Virtual Environment
+bash
+Copy code
+python -m venv venv
+source venv/bin/activate
+3️⃣ Install Dependencies
+bash
+Copy code
+pip install -r requirements.txt
+💾 Create Pickled Model
+Run once to generate the model file:
+
+bash
+Copy code
+python save_model.py
+This creates:
+
+bash
+Copy code
+model/recommender.pkl
+🧪 Test Model (Without API)
+bash
+Copy code
+python test_model.py
+Ensures:
+
+Model loads correctly
+
+Ranking works
+
+Missing fields do not crash the system
+
+🌐 Run FastAPI Service
+bash
+Copy code
+uvicorn main:app --reload
+Open browser:
+
+arduino
+Copy code
+http://127.0.0.1:8000/docs
+Swagger UI allows interactive API testing.
+
+🔗 API Endpoint
+POST /rank-candidates
+Request Body (Example)
+json
+Copy code
+{
+  "job_title": "Python Machine Learning Engineer",
+  "job_description": "Python ML engineer with 2+ years experience",
+  "candidates": [
+    {
+      "id": "C1",
+      "skills": ["Python", "Machine Learning", "SQL"],
+      "experience_years": 2,
+      "projects": ["ML Scoring Engine"]
+    },
+    {
+      "id": "C2",
+      "skills": ["Python"],
+      "experience_years": 1
+    }
+  ]
+}
+Response (Example)
+json
+Copy code
+{
+  "job_title": "Python Machine Learning Engineer",
+  "total_candidates": 2,
+  "ranked_candidates": [
+    {
+      "candidate_id": "C1",
+      "final_score": 84.23
+    },
+    {
+      "candidate_id": "C2",
+      "final_score": 42.11
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+# Path: recommender_model.py
+
+
+
+# ----------------------------
+# Imports
+# ----------------------------
+
+import re  # Used to extract required experience from job description text
+from sentence_transformers import SentenceTransformer  # Converts text → embeddings
+from sklearn.metrics.pairwise import cosine_similarity  # Measures similarity between embeddings
+
+
+class RecommenderModel:
+    """
+    Main recommendation model class.
+
+    Responsibilities:
+    - Load embedding model once
+    - Convert job & candidate text to vectors
+    - Compute relevance scores
+    - Return ranked candidate list
+    """
+
+    def __init__(
+        self,
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        job_desc_weight=0.60,
+        job_title_weight=0.15,
+        skill_weight=0.15,
+        experience_weight=0.10
+    ):
+        # """
+        # Initialize model and scoring weights.
+
+        # All weights must sum to 1.0 to keep scoring normalized.
+        # """
+
+        # Validate weight configuration
+        total = (
+            job_desc_weight +
+            job_title_weight +
+            skill_weight +
+            experience_weight
+        )
+        assert abs(total - 1.0) < 0.01, "Weights must sum to 1.0"
+
+        # Store weights
+        self.job_desc_weight = job_desc_weight
+        self.job_title_weight = job_title_weight
+        self.skill_weight = skill_weight
+        self.experience_weight = experience_weight
+
+        # Load sentence transformer model once (important for performance)
+        self.encoder = SentenceTransformer(model_name)
+
+    # ----------------------------
+    # Helper Functions
+    # ----------------------------
+
+    def _embed(self, text: str):
+        """
+        Convert text into a normalized embedding vector.
+        Normalization ensures cosine similarity behaves correctly.
+        """
+        return self.encoder.encode(text, normalize_embeddings=True)
+
+    def _safe_list(self, value):
+        """
+        Ensure value is a list.
+        Returns empty list if value is missing or invalid.
+        """
+        return value if isinstance(value, list) else []
+
+    def _safe_int(self, value):
+        """
+        Ensure value is an integer.
+        Returns None if experience is missing.
+        """
+        return value if isinstance(value, int) else None
+
+    def _candidate_to_text(self, candidate: dict):
+        """
+        Convert candidate structured data into a single text string.
+
+        This text is used for semantic embedding.
+        """
+
+        skills = self._safe_list(candidate.get("skills"))  # mandatory
+        projects = self._safe_list(candidate.get("projects"))
+        experience = self._safe_int(candidate.get("experience_years"))
+
+        # Skills always included
+        parts = [f"Skills: {', '.join(skills)}"]
+
+        # Projects add credibility
+        if projects:
+            parts.append(f"Projects: {', '.join(projects)}")
+
+        # Experience adds seniority signal
+        if experience is not None:
+            parts.append(f"Experience: {experience} years")
+
+        return ". ".join(parts)
+
+    # ----------------------------
+    # Rule-Based Scoring Functions
+    # ----------------------------
+
+    def _skill_score(self, job_desc: str, skills):
+        """
+        Skill relevance score:
+        Measures overlap between job description words and candidate skills.
+        """
+
+        job_words = set(job_desc.lower().split())
+        skill_words = set(s.lower() for s in skills)
+
+        # Percentage of skills mentioned in job description
+        return len(job_words & skill_words) / len(skill_words)
+
+    def _experience_score(self, job_desc: str, exp):
+        """
+        Experience score:
+        - Missing experience → penalty
+        - If job specifies years, score is proportional
+        """
+
+        # Missing experience → penalize
+        if exp is None:
+            return 0.3
+
+        # Extract required years from job description
+        match = re.search(r"(\d+)\s+years", job_desc.lower())
+        if not match:
+            return 0.7  # Experience exists but requirement not specified
+
+        required = int(match.group(1))
+        if required == 0:
+            return 0.7
+
+        return min(exp / required, 1.0)
+
+    # ----------------------------
+    # Main Ranking Function
+    # ----------------------------
+
+    def rank(self, job_title: str, job_description: str, candidates: list):
+        """
+        Rank candidates for a given job.
+
+        Inputs:
+        - job_title: role intent
+        - job_description: detailed responsibilities
+        - candidates: list of candidate dictionaries
+
+        Output:
+        - List of candidates sorted by final_score (descending)
+        """
+
+        # Embed job title and description once
+        job_title_emb = self._embed(job_title)
+        job_desc_emb = self._embed(job_description)
+
+        results = []
+
+        # Evaluate each candidate
+        for candidate in candidates:
+            candidate_id = candidate.get("id", "UNKNOWN")
+
+            # ----------------------------
+            # Mandatory Skills Check
+            # ----------------------------
+
+            skills = candidate.get("skills")
+            if not skills:
+                # Skip invalid candidates (industry-standard behavior)
+                continue
+
+            projects = self._safe_list(candidate.get("projects"))
+
+            # Build candidate semantic profile
+            candidate_text = self._candidate_to_text(candidate)
+            cand_emb = self._embed(candidate_text)
+
+            # ----------------------------
+            # Semantic Similarity Scores
+            # ----------------------------
+
+            # Role intent similarity
+            title_similarity = float(
+                cosine_similarity([job_title_emb], [cand_emb])[0][0]
+            )
+
+            # Responsibility/context similarity
+            desc_similarity = float(
+                cosine_similarity([job_desc_emb], [cand_emb])[0][0]
+            )
+
+            # ----------------------------
+            # Rule-Based Scores
+            # ----------------------------
+
+            skill_score = self._skill_score(job_description, skills)
+
+            experience_score = self._experience_score(
+                job_description, candidate.get("experience_years")
+            )
+
+            # ----------------------------
+            # Missing Project Penalty
+            # ----------------------------
+
+            # Candidates without projects are slightly penalized
+            project_penalty = 0.85 if not projects else 1.0
+
+            # ----------------------------
+            # Final Score Calculation
+            # ----------------------------
+
+            final_score = (
+                self.job_desc_weight * desc_similarity +
+                self.job_title_weight * title_similarity +
+                self.skill_weight * skill_score +
+                self.experience_weight * experience_score
+            ) * project_penalty
+
+            # Store final result
+            results.append({
+                "candidate_id": candidate_id,
+                "job_desc_score": round(desc_similarity * 100, 2),
+                "job_title_score": round(title_similarity * 100, 2),
+                "skill_score": round(skill_score * 100, 2),
+                "experience_score": round(experience_score * 100, 2),
+                "final_score": round(float(final_score) * 100, 2)
+            })
+
+        # Return ranked candidates (best first)
+        return sorted(results, key=lambda x: x["final_score"], reverse=True)
+
+
+
+# Path: test_model.py
+
+from recommender_model import RecommenderModel
+
+model = RecommenderModel()
+
+job_title = "Python Machine Learning Engineer"
+
+job_description = (
+    "We are hiring a Python Developer with at least 2 years of experience. "
+    "The candidate must have strong knowledge of Machine Learning and SQL. "
+    "Hands-on experience in building ML systems, scoring engines, "
+    "recommendation systems, or data pipelines is highly preferred. "
+    "Experience with APIs, model deployment, and analytics tools is a plus."
+)
+candidates = [
+    {"id":"C1","skills":["Python","Machine Learning","SQL"],"experience_years":3,
+     "projects":["Resume Parser","Recommendation Engine"]},
+
+    {"id":"C2","skills":["Python","SQL"],"experience_years":2,
+     "projects":["ETL Pipeline","Data Warehouse"]},
+
+    {"id":"C3","skills":["Java","Spring","Hibernate"],"experience_years":4,
+     "projects":["ERP System","Billing App"]},
+
+    {"id":"C4","skills":["Python","Machine Learning"],"experience_years":1,
+     "projects":["Spam Classifier"]},
+
+    {"id":"C5","skills":["Python","ML","SQL"],"experience_years":2,
+     "projects":["AI Hiring Tool","Scoring Engine"]},
+
+    {"id":"C6","skills":["Python","SQL"],"experience_years":5,
+     "projects":["Analytics Dashboard"]},
+
+    {"id":"C7","skills":["C++","DSA"],"experience_years":2,
+     "projects":["Graph Visualizer"]},
+
+    {"id":"C8","skills":["Python","Deep Learning","SQL"],"experience_years":3,
+     "projects":["Image Classification","Face Recognition"]},
+
+    {"id":"C9","skills":["Python","Flask"],"experience_years":1,
+     "projects":["REST API"]},
+
+    {"id":"C10","skills":["Python","Machine Learning","SQL"],"experience_years":3,
+     "projects":["ML Pipeline","Recommendation Engine"]},
+
+    # ---- Missing EXPERIENCE ----
+    {"id":"C11","skills":["Python","SQL"],
+     "projects":["CRUD App","Student Portal"]},
+
+    {"id":"C12","skills":["Python","Machine Learning"],
+     "projects":["Model Deployment","CI/CD for ML"]},
+
+    {"id":"C13","skills":["Python","ML"]},
+
+    {"id":"C14","skills":["JavaScript","React"],
+     "projects":["Frontend Dashboard"]},
+
+    {"id":"C15","skills":["Python"]},
+
+    # ---- Missing PROJECTS ----
+    {"id":"C16","skills":["Python","SQL"],"experience_years":1},
+
+    {"id":"C17","skills":["Python","SQL","ML"],"experience_years":2},
+
+    {"id":"C18","skills":["Java","Hibernate"],"experience_years":5},
+
+    {"id":"C19","skills":["Python","Machine Learning"],"experience_years":2},
+
+    {"id":"C20","skills":["Python","Machine Learning","SQL"],"experience_years":4},
+
+    # ---- Mixed quality ----
+    {"id":"C21","skills":["Python","ML"],"experience_years":2,
+     "projects":["Sales Forecast"]},
+
+    {"id":"C22","skills":["Python"],"experience_years":1},
+
+    {"id":"C23","skills":["C#",".NET"],"experience_years":3,
+     "projects":["Enterprise App"]},
+
+    {"id":"C24","skills":["Python","Machine Learning","SQL"],"experience_years":5,
+     "projects":["ML Registry","Model Monitoring"]},
+
+    {"id":"C25","skills":["Python","Pandas","SQL"],"experience_years":2,
+     "projects":["ETL Script"]},
+
+    {"id":"C26","skills":["Python","Machine Learning"],
+     "projects":["Clustering Tool"]},
+
+    {"id":"C27","skills":["Java","Microservices"],"experience_years":6},
+
+    {"id":"C28","skills":["Python","SQL","ML"],"experience_years":2,
+     "projects":["ML REST API"]},
+
+    {"id":"C29","skills":["Python","Flask","SQL"],"experience_years":2},
+
+    {"id":"C30","skills":["Python","Machine Learning"],"experience_years":1},
+
+    # ---- Mostly incomplete but valid ----
+    {"id":"C31","skills":["Python"]},
+
+    {"id":"C32","skills":["Python","SQL"],"experience_years":3},
+
+    {"id":"C33","skills":["Python"],
+     "projects":["Backend API"]},
+
+    {"id":"C34","skills":["Python","ML","SQL"],"experience_years":2},
+
+    {"id":"C35","skills":["Python","Statistics"],"experience_years":4},
+
+    {"id":"C36","skills":["Python","NumPy"],"experience_years":1},
+
+    {"id":"C37","skills":["Python","Machine Learning"],"experience_years":5,
+     "projects":["End-to-End ML System"]},
+
+    {"id":"C38","skills":["Java","SQL"],"experience_years":3},
+
+    {"id":"C39","skills":["Python","SQL","Power BI"],"experience_years":2},
+
+    {"id":"C40","skills":["Python","Deep Learning"],"experience_years":2},
+
+    # ---- Edge but realistic ----
+    {"id":"C41","skills":["Python","ML"],"projects":["Demand Planning"]},
+
+    {"id":"C42","skills":["Python"],"experience_years":2},
+
+    {"id":"C43","skills":["Python","Machine Learning","SQL"],"experience_years":6},
+
+    {"id":"C44","skills":["Python","SQL"],"experience_years":4,
+     "projects":["Reporting Tool"]},
+
+    {"id":"C45","skills":["Python","Machine Learning"],
+     "projects":["Fraud Detection"]},
+
+    {"id":"C46","skills":["Python","Data Science"],"experience_years":3},
+
+    {"id":"C47","skills":["Python","ML","SQL"],"experience_years":1},
+
+    {"id":"C48","skills":["Python","MLOps"],"experience_years":4,
+     "projects":["Model Deployment"]},
+
+    {"id":"C49","skills":["Python","Flask","SQL"],"experience_years":1},
+
+    {"id":"C50","skills":["Python","Machine Learning","SQL"],"experience_years":2,
+     "projects":["Candidate Ranking System"]},
+
+    # ---- Extra realistic noise ----
+    {"id":"C51","skills":["Python","SQL"]},
+
+    {"id":"C52","skills":["Python","Machine Learning"],"experience_years":3},
+
+    {"id":"C53","skills":["Python","Data Analysis"],"experience_years":2},
+
+    {"id":"C54","skills":["Python","ML"],"projects":["Prediction Tool"]},
+
+    {"id":"C55","skills":["Python","SQL","Statistics"],"experience_years":4},
+
+    {"id":"C56","skills":["Python"],"experience_years":1},
+
+    {"id":"C57","skills":["Python","Machine Learning"],"experience_years":5},
+
+    {"id":"C58","skills":["Python","SQL"],"projects":["Dashboard"]},
+
+    {"id":"C59","skills":["Python","ML","SQL"],"experience_years":2},
+
+    {"id":"C60","skills":["Python","Machine Learning","SQL"],"experience_years":3,
+     "projects":["ML Optimization"]}
+]
+
+
+
+
+
+
+results = model.rank(
+    job_title=job_title,
+    job_description=job_description,
+    candidates=candidates
+)
+
+for r in results:
+    print(r)
